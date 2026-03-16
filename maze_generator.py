@@ -1,6 +1,6 @@
 import random
 from collections import deque
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Dict, Optional
 
 
 class MazeGenerator:
@@ -156,8 +156,11 @@ class MazeGenerator:
                             queue.append((nx, ny))
         return []
 
-    def _reconstruct_path(self, parent: dict,
-                          goal: Tuple[int, int]) -> List[Tuple[int, int]]:
+    def _reconstruct_path(
+        self,
+        parent: Dict[Tuple[int, int], Optional[Tuple[int, int]]],
+        goal: Tuple[int, int]
+    ) -> List[Tuple[int, int]]:
         """
         Helper method to backtrack from the goal to the start using
         the parent dictionary.
