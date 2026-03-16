@@ -1,8 +1,8 @@
-from typing import Dict, Any, Tuple, List, Union
+from typing import Dict, Tuple, List, Union
 from maze_generator import MazeGenerator
 
 
-ConfigDict = Dict[str, Union[int, bool, Tuple[int, int]]]
+ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
 
 
 def parse_config(filename: str) -> ConfigDict:
@@ -27,7 +27,10 @@ def parse_config(filename: str) -> ConfigDict:
                              f"Expected format KEY=VALUE")
         key = key.strip()
         value_str = raw_value.strip()
-        value: Any
+
+        if key in config:
+            raise ValueError(f"Duplicate key found: '{key}'. "
+                             f"Each setting must be defined only once.")
         try:
             if key in ["WIDTH", "HEIGHT"]:
                 value = int(value_str)
@@ -35,12 +38,26 @@ def parse_config(filename: str) -> ConfigDict:
                 x, y = value_str.split(",")
                 value = (int(x), int(y))
             elif key == "PERFECT":
-                value = value_str.lower() == "true"
+                normalized = value_str.lower()
+                if normalized == "true":
+                    value = True
+                elif normalized == "false":
+                    value = False
+                else:
+                    raise ValueError("PERFECT must be 'true' or 'false'")
+            elif key == "SEED":
+                value = int(value_str)
             else:
                 value = value_str
-        except Exception:
-            raise ValueError(f"Invalid value for '{key}': '{value_str}'")
-        config[key] = value
+
+            config[key] = value
+
+        except (ValueError, IndexError, TypeError) as e:
+            if isinstance(e, ValueError) and ("Duplicate" in str(e)
+                                              or "PERFECT" in str(e)):
+                raise e
+            raise ValueError(f"Invalid value for '{key}':"
+                             f"'{value_str}'") from e
 
     width = config.get("WIDTH")
     height = config.get("HEIGHT")
@@ -71,6 +88,34 @@ def main() -> None:
     maze = MazeGenerator(config)
     maze.generate()
     maze.display()
+
+    print("\nSolving the maze...")
+    path = maze.solve()
+
+    output_filename = str(config.get("OUTPUT_FILE", "maze.txt"))
+
+    try:
+        with open(output_filename, "w") as f:
+            for row in maze.maze:
+                hex_row = "".join(f"{cell:X}" for cell in row)
+                f.write(hex_row + "\n")
+
+            f.write("\n")
+            f.write(f"{maze.entry[0]},{maze.entry[1]}\n")
+            f.write(f"{maze.exit[0]},{maze.exit[1]}\n")
+
+            trajectory = maze.get_solution_path(path)
+            f.write(trajectory + "\n")
+
+        print(f"\nSuccess! Maze and path saved to {output_filename}")
+
+    except Exception as e:
+        print(f"Error saving output file: {e}")
+
+    if path:
+        print(f"Path found! It takes {len(path)} steps.")
+    else:
+        print("No path found.")
 
 
 if __name__ == "__main__":

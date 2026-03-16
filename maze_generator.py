@@ -1,4 +1,5 @@
 import random
+from collections import deque
 from typing import List, Tuple, Any
 
 
@@ -121,6 +122,78 @@ class MazeGenerator:
         print(f"Exit: {self.exit}")
         print(f"Perfect: {self.perfect}")
         print("\nMaze generated successfully!")
+
+    def solve(self) -> List[Tuple[int, int]]:
+        """
+        Solves the maze using the Breadth-First Search (BFS) algorithm.
+        Returns the shortest path as a list of coordinates.
+        """
+        start = self.entry
+        goal = self.exit
+
+        queue = deque([start])
+        parent = {start: None}
+
+        while queue:
+            curr_x, curr_y = queue.popleft()
+            if (curr_x, curr_y) == goal:
+                return self._reconstruct_path(parent, goal)
+
+            directions = [
+                (0, -1, 1),
+                (1, 0, 2),
+                (0, 1, 4),
+                (-1, 0, 8)
+            ]
+
+            for dx, dy, wall_bit in directions:
+                nx, ny = curr_x + dx, curr_y + dy
+
+                if 0 <= nx < self.width and 0 <= ny < self.height:
+                    if not (self.maze[curr_y][curr_x] & wall_bit):
+                        if (nx, ny) not in parent:
+                            parent[(nx, ny)] = (curr_x, curr_y)
+                            queue.append((nx, ny))
+        return []
+
+    def _reconstruct_path(self, parent: dict,
+                          goal: Tuple[int, int]) -> List[Tuple[int, int]]:
+        """
+        Helper method to backtrack from the goal to the start using
+        the parent dictionary.
+        """
+        path = []
+        curr = goal
+        while curr is not None:
+            path.append(curr)
+            curr = parent[curr]
+        return path[::-1]
+
+    def get_solution_path(self, path: List[Tuple[int, int]]) -> str:
+        """
+        Converts the BFS path coordinates into a sequence
+        of N, E, S, W letters.
+        """
+        if not path or len(path) < 2:
+            return ""
+
+        directions = []
+        for i in range(len(path) - 1):
+            curr = path[i]
+            nxt = path[i + 1]
+
+            dx = nxt[0] - curr[0]
+            dy = nxt[1] - curr[1]
+
+            if dx == 1:
+                directions.append("E")
+            elif dx == -1:
+                directions.append("W")
+            elif dy == 1:
+                directions.append("S")
+            elif dy == -1:
+                directions.append("N")
+        return "".join(directions)
 
     def display(self) -> None:
         """
