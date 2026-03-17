@@ -1,3 +1,4 @@
+import sys
 from typing import Dict, Tuple, List, Union
 from maze_generator import MazeGenerator
 
@@ -61,6 +62,12 @@ def parse_config(filename: str) -> ConfigDict:
             raise ValueError(f"Invalid value for '{key}':"
                              f"'{value_str}'") from e
 
+    mandatory_keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT",
+                      "PERFECT", "OUTPUT_FILE"]
+    for key in mandatory_keys:
+        if key not in config:
+            raise ValueError(f"Missing mandatory configuration key: {key}")
+
     width = config.get("WIDTH")
     height = config.get("HEIGHT")
     entry = config.get("ENTRY")
@@ -86,17 +93,23 @@ def main() -> None:
     """
     Main function to run the A-Maze-ing program.
     """
-    config: ConfigDict = parse_config("config.txt")
-    maze = MazeGenerator(config)
-    maze.generate()
-    maze.display()
 
-    print("\nSolving the maze...")
-    path = maze.solve()
-
-    output_filename = str(config.get("OUTPUT_FILE", "maze.txt"))
+    if len(sys.argv) != 2:
+        sys.stderr.write("Error: Invalid number of arguments.\n")
+        sys.stderr.write("Usage: python3 a_maze_ing.py <config_file>")
+        sys.exit(1)
 
     try:
+        config: ConfigDict = parse_config(sys.argv[1])
+        maze = MazeGenerator(config)
+        maze.generate()
+        maze.display()
+
+        print("\nSolving the maze...")
+        path = maze.solve()
+
+        output_filename = str(config["OUTPUT_FILE"])
+
         with open(output_filename, "w") as f:
             for row in maze.maze:
                 hex_row = "".join(f"{cell:X}" for cell in row)
@@ -112,7 +125,8 @@ def main() -> None:
         print(f"\nSuccess! Maze and path saved to {output_filename}")
 
     except Exception as e:
-        print(f"Error saving output file: {e}")
+        sys.stderr.write(f"Error: {e}\n")
+        sys.exit(1)
 
     if path:
         print(f"Path found! It takes {len(path)} steps.")
