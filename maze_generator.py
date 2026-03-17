@@ -4,7 +4,7 @@ from typing import List, Tuple, Any, Dict, Optional
 
 
 class MazeGenerator:
-    def __init__(self, config: dict):
+    def __init__(self, config: Dict[str, Any]):
         """
         Initializes the maze generator with the given configuration.
         """
@@ -39,7 +39,7 @@ class MazeGenerator:
         p_height = len(pattern_42)
         p_width = len(pattern_42[0])
 
-        reserved = []
+        reserved: List[Tuple[int, int]] = []
         if self.width < p_width + 2 or self.height < p_height + 2:
             print("Error: Maze too small to draw the '42' pattern.")
             return reserved
@@ -59,19 +59,6 @@ class MazeGenerator:
         """
         for x, y in self.res_cells:
             self.maze[y][x] = 15
-
-    def _open_external_wall(self, coords: Tuple[int, int]) -> None:
-        """Opens the wall that faces the outside of the maze."""
-        x, y = coords
-        if y == 0:
-            self.maze[y][x] &= ~1
-        elif y == self.height - 1:
-            self.maze[y][x] &= ~4
-
-        if x == 0:
-            self.maze[y][x] &= ~8
-        elif x == self.width - 1:
-            self.maze[y][x] &= ~2
 
     def _get_neighbors(self, x: int,
                        y: int) -> List[Tuple[int, int, int, int]]:
@@ -114,9 +101,6 @@ class MazeGenerator:
             else:
                 stack.pop()
 
-        self._open_external_wall(self.entry)
-        self._open_external_wall(self.exit)
-
         print(f"\nGrid {self.width}x{self.height} successfully initialized!")
         print(f"\nEntry: {self.entry}")
         print(f"Exit: {self.exit}")
@@ -130,9 +114,9 @@ class MazeGenerator:
         """
         start = self.entry
         goal = self.exit
-
         queue = deque([start])
-        parent = {start: None}
+        parent: Dict[Tuple[int, int],
+                     Optional[Tuple[int, int]]] = {start: None}
 
         while queue:
             curr_x, curr_y = queue.popleft()
@@ -165,8 +149,8 @@ class MazeGenerator:
         Helper method to backtrack from the goal to the start using
         the parent dictionary.
         """
-        path = []
-        curr = goal
+        path: List[Tuple[int, int]] = []
+        curr: Optional[Tuple[int, int]] = goal
         while curr is not None:
             path.append(curr)
             curr = parent[curr]

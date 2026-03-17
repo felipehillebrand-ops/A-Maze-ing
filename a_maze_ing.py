@@ -31,6 +31,8 @@ def parse_config(filename: str) -> ConfigDict:
         if key in config:
             raise ValueError(f"Duplicate key found: '{key}'. "
                              f"Each setting must be defined only once.")
+        value: Union[int, bool, Tuple[int, int], str]
+
         try:
             if key in ["WIDTH", "HEIGHT"]:
                 value = int(value_str)
