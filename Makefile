@@ -2,27 +2,33 @@ PYTHON = python3
 PIP = pip3
 NAME = a_maze_ing.py
 CONFIG = config.txt
+VENV = venv
+BIN = $(VENV)/bin
+
+all: run
 
 install:
-		$(PIP) install flake8 mypy build
+		$(PYTHON) -m venv $(VENV)
+		$(BIN)/pip install --upgrade pip
+		$(BIN)/pip install flake8 mypy build
 
 run:
-		$(PYTHON) $(NAME) $(CONFIG)
+		$(BIN)/python $(NAME) $(CONFIG)
 
 debug:
-		$(PYTHON) -m pdb $(NAME) $(CONFIG)
+		$(BIN)/python -m pdb $(NAME) $(CONFIG)
 	
 clean:
-		rm -rf __pycache__ .mypy_cache .pytest_cache
+		rm -rf __pycache__ .mypy_cache .pytest_cache $(VENV)
 		rm -rf dist build *.egg-info
 		find . -type d -name "__pycache__" -exec rm -rf {} +
 
 lint:
-		flake8 .
-		mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+		$(BIN)/flake8 .
+		$(BIN)/mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-		flake8 .
-		mypy . --strict
+		$(BIN)/flake8 .
+		$(BIN)/mypy . --strict
 
-.PHONY: install run debug clean lint lint-strict
+.PHONY: all install run debug clean lint lint-strict
