@@ -24,11 +24,11 @@ clean:
 		find . -type d -name "__pycache__" -exec rm -rf {} +
 
 lint:
-		$(BIN)/flake8 .
-		$(BIN)/mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+		$(BIN)/flake8 . --exclude=$(VENV)
+		$(BIN)/mypy . --exclude $(VENV) --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-		$(BIN)/flake8 .
-		$(BIN)/mypy . --strict
+		$(BIN)/flake8 . --exclude=$(VENV)
+		$(BIN)/mypy . --strict --exclude $(VENV)
 
 .PHONY: all install run debug clean lint lint-strict
