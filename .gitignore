@@ -1,0 +1,15 @@
+# Virtual environments
+venv/
+
+# Python and Tool Caches
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+
+# Build or distribution outputs
+dist/
+build/
+*.egg-info/
+
+# Program outputs
+maze.txt
