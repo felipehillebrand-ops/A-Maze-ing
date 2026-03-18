@@ -10,6 +10,7 @@ all: run
 install:
 		$(PYTHON) -m venv $(VENV)
 		$(BIN)/pip install --upgrade pip
+		$(BIN)/pip install -e .
 		$(BIN)/pip install flake8 mypy build
 
 run:
@@ -31,4 +32,6 @@ lint-strict:
 		$(BIN)/flake8 . --exclude=$(VENV)
 		$(BIN)/mypy . --strict --exclude $(VENV)
 
-.PHONY: all install run debug clean lint lint-strict
+re: clean install
+
+.PHONY: all install run debug clean lint lint-strict re

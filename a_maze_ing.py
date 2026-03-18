@@ -1,6 +1,6 @@
 import sys
 from typing import Dict, Tuple, List, Union
-from maze_generator import MazeGenerator
+from mazegen.generator import MazeGenerator
 
 
 ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
