@@ -10,7 +10,6 @@ authors = [
   {name = "Felipe Hillebrand", email = "fjose-hi@student.42porto.com"},
   {name = "Kleyton Filho", email = "kde-arru@student.42porto.com"}
 ]
-readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3.10",
