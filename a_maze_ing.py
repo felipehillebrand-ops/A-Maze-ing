@@ -1,6 +1,7 @@
 import sys
 from typing import Dict, Tuple, List, Union
 from mazegen.generator import MazeGenerator
+from display import MazeVisualizer
 
 
 ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
@@ -132,6 +133,9 @@ def main() -> None:
         print(f"Path found! It takes {len(path)} steps.")
     else:
         print("No path found.")
+
+    visualizer = MazeVisualizer(maze)
+    visualizer.run()
 
 
 if __name__ == "__main__":
