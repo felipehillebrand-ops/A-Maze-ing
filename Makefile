@@ -22,6 +22,7 @@ run: $(VENV)
 	$(BIN)/python3 $(NAME) $(CONFIG)
 
 install: $(VENV)
+	$(BIN)/pip install -e .
 
 debug: $(VENV)
 	$(BIN)/python3 -m pdb $(NAME) $(CONFIG)
@@ -33,9 +34,13 @@ clean:
 	rm -rf mlx/__pycache__
 
 lint: $(VENV)
-	$(BIN)/flake8 . --exclude=$(VENV)
-	$(BIN)/mypy . --exclude $(VENV) --ignore-missing-imports
+	$(BIN)/flake8 . --exclude=$(VENV),mlx
+	$(BIN)/mypy . --exclude $(VENV) --exclude mlx --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+
+lint-strict: $(VENV)
+	$(BIN)/flake8 . --exclude=$(VENV),mlx
+	$(BIN)/mypy . --strict --exclude $(VENV) --exclude mlx
 
 re: clean all
 
-.PHONY: all install run debug clean lint re
+.PHONY: all install run debug clean lint lint-strict re
