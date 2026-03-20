@@ -27,7 +27,7 @@ def parse_config(filename: str) -> ConfigDict:
         except ValueError:
             raise ValueError(f"Invalid line in config: '{line}'."
                              f"Expected format KEY=VALUE")
-        key = key.strip()
+        key = key.strip().upper()
         value_str = raw_value.strip()
 
         if key in config:
@@ -49,10 +49,12 @@ def parse_config(filename: str) -> ConfigDict:
                     value = False
                 else:
                     raise ValueError("PERFECT must be 'true' or 'false'")
+            elif key == "OUTPUT_FILE":
+                value = value_str
             elif key == "SEED":
                 value = int(value_str)
             else:
-                value = value_str
+                continue
 
             config[key] = value
 
@@ -63,11 +65,10 @@ def parse_config(filename: str) -> ConfigDict:
             raise ValueError(f"Invalid value for '{key}':"
                              f"'{value_str}'") from e
 
-    mandatory_keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT",
-                      "PERFECT", "OUTPUT_FILE"]
-    for key in mandatory_keys:
-        if key not in config:
-            raise ValueError(f"Missing mandatory configuration key: {key}")
+    required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
+    for req in required:
+        if req not in config:
+            raise ValueError(f"Missing required configuration key: {req}")
 
     width = config.get("WIDTH")
     height = config.get("HEIGHT")
@@ -76,8 +77,9 @@ def parse_config(filename: str) -> ConfigDict:
 
     if not isinstance(width, int) or not isinstance(height, int):
         raise ValueError("WIDTH and HEIGHT must be integers")
-    if width <= 0 or height <= 0:
-        raise ValueError("Width and height must be greater than zero")
+    if width < 11 or height < 9:
+        raise ValueError("Maze dimensions too small to fit the '42'"
+                         "pattern safely (min 11x9 recommended)")
 
     if isinstance(entry, tuple) and isinstance(exit_point, tuple):
         if not (0 <= entry[0] < width and 0 <= entry[1] < height):
@@ -125,6 +127,11 @@ def main() -> None:
 
         print(f"\nSuccess! Maze and path saved to {output_filename}")
 
+        if path:
+            print(f"Path found! It takes {len(path)} steps.")
+        else:
+            print("No path found.")
+
     except Exception as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
@@ -133,9 +140,6 @@ def main() -> None:
         print(f"Path found! It takes {len(path)} steps.")
     else:
         print("No path found.")
-
-    visualizer = MazeVisualizer(maze, path)
-    visualizer.run()
 
 
 if __name__ == "__main__":
