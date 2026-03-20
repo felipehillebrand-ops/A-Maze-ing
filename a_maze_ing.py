@@ -38,6 +38,8 @@ def parse_config(filename: str) -> ConfigDict:
         try:
             if key in ["WIDTH", "HEIGHT"]:
                 value = int(value_str)
+                if value < 0:
+                    raise ValueError(f"{key} cannot be negative")
             elif key in ["ENTRY", "EXIT"]:
                 x, y = value_str.split(",")
                 value = (int(x), int(y))
@@ -59,8 +61,9 @@ def parse_config(filename: str) -> ConfigDict:
             config[key] = value
 
         except (ValueError, IndexError, TypeError) as e:
-            if isinstance(e, ValueError) and ("Duplicate" in str(e)
-                                              or "PERFECT" in str(e)):
+            is_val_err = isinstance(e, ValueError)
+            custom_msgs = ["cannot be negative", "Duplicate", "PERFECT"]
+            if is_val_err and any(msg in str(e) for msg in custom_msgs):
                 raise e
             raise ValueError(f"Invalid value for '{key}':"
                              f"'{value_str}'") from e
@@ -99,7 +102,7 @@ def main() -> None:
 
     if len(sys.argv) != 2:
         sys.stderr.write("Error: Invalid number of arguments.\n")
-        sys.stderr.write("Usage: python3 a_maze_ing.py <config_file>")
+        sys.stderr.write("Usage: python3 a_maze_ing.py <config_file>\n")
         sys.exit(1)
 
     try:
