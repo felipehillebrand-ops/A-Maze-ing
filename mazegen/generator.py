@@ -41,8 +41,7 @@ class MazeGenerator:
 
         reserved: List[Tuple[int, int]] = []
         if self.width < p_width + 2 or self.height < p_height + 2:
-            print("Error: Maze too small to draw the '42' pattern.")
-            return reserved
+            raise ValueError("Maze too small to draw the '42' pattern.")
 
         start_x = (self.width - p_width) // 2
         start_y = (self.height - p_height) // 2
@@ -60,8 +59,8 @@ class MazeGenerator:
         for x, y in self.res_cells:
             self.maze[y][x] = 15
 
-    def _get_neighbors(self, x: int,
-                       y: int) -> List[Tuple[int, int, int, int]]:
+    def _get_neighbors(self, x: int, y: int,
+                       visited: set) -> List[Tuple[int, int, int, int]]:
         """
         Returns a list of valid neighbors that have not been visited yet.
         """
@@ -76,7 +75,7 @@ class MazeGenerator:
         for dx, dy, wall_me, wall_them in directions:
             nx, ny = x + dx, y + dy
             if 0 <= nx < self.width and 0 <= ny < self.height:
-                if self.maze[ny][nx] == 15 and (nx, ny) not in self.res_cells:
+                if (nx, ny) not in visited:
                     neighbors.append((nx, ny, wall_me, wall_them))
         return neighbors
 
@@ -89,23 +88,92 @@ class MazeGenerator:
 
         stack: List[Tuple[int, int]] = [self.entry]
 
+        visited = set()
+        visited.add(self.entry)
+
+        for cell in self.res_cells:
+            visited.add(cell)
+
         while stack:
             cx, cy = stack[-1]
-            neighbors = self._get_neighbors(cx, cy)
+            neighbors = self._get_neighbors(cx, cy, visited)
 
             if neighbors:
                 nx, ny, wall_me, wall_them = random.choice(neighbors)
-                self.maze[cy][cx] -= wall_me
-                self.maze[ny][nx] -= wall_them
+                self.maze[cy][cx] &= ~wall_me
+                self.maze[ny][nx] &= ~wall_them
+                visited.add((nx, ny))
                 stack.append((nx, ny))
             else:
                 stack.pop()
+
+        if not self.perfect:
+            self._make_imperfect()
 
         print(f"\nGrid {self.width}x{self.height} successfully initialized!")
         print(f"\nEntry: {self.entry}")
         print(f"Exit: {self.exit}")
         print(f"Perfect: {self.perfect}")
         print("\nMaze generated successfully!")
+
+    def _creates_3x3_open_zone(self, x: int, y: int, nx: int, ny: int) -> bool:
+        """
+        Checks if removing the wall between (x, y) and (nx, ny) would create
+        an open zone of 3x3 or larger.
+        """
+        min_x = min(x, nx)
+        min_y = min(y, ny)
+
+        for r in range(min_y - 1, min_y + 1):
+            for c in range(min_x - 1, min_x + 1):
+                if 0 <= r < self.height - 1 and 0 <= c < self.width - 1:
+                    h1 = not (self.maze[r][c] & 2)
+                    h2 = not (self.maze[r+1][c] & 2)
+                    v1 = not (self.maze[r][c] & 4)
+                    v2 = not (self.maze[r][c+1] & 4)
+
+                    if h1 and h2 and v1 and v2:
+                        return True
+        return False
+
+    def _make_imperfect(self) -> None:
+        """
+        Creates loops and multiple paths by randomly removing internal walls.
+        It strictly prevents the creation of 3x3 open zones and protects
+        the '42' pattern and external boundaries.
+        """
+        extra_paths = (self.width * self.height) // 10
+        attempts = 0
+        removed = 0
+
+        while removed < extra_paths and attempts < extra_paths * 5:
+            attempts += 1
+            x = random.randint(1, self.width - 2)
+            y = random.randint(1, self.height - 2)
+
+            if (x, y) in self.res_cells:
+                continue
+
+            direction = random.choice([1, 2, 4, 8])
+            if not (self.maze[y][x] & direction):
+                continue
+
+            nx, ny = x, y
+            opp_direction = 0
+            if direction == 1:
+                ny, opp_direction = y - 1, 4
+            elif direction == 2:
+                nx, opp_direction = x + 1, 8
+            elif direction == 4:
+                ny, opp_direction = y + 1, 1
+            elif direction == 8:
+                nx, opp_direction = x - 1, 2
+            if 0 <= nx < self.width and 0 <= ny < self.height:
+                if (nx, ny) not in self.res_cells:
+                    if not self._creates_3x3_open_zone(x, y, nx, ny):
+                        self.maze[y][x] &= ~direction
+                        self.maze[ny][nx] &= ~opp_direction
+                        removed += 1
 
     def solve(self) -> List[Tuple[int, int]]:
         """
