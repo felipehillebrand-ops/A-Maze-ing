@@ -136,11 +136,6 @@ def main() -> None:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
 
-    if path:
-        print(f"Path found! It takes {len(path)} steps.")
-    else:
-        print("No path found.")
-
 
 if __name__ == "__main__":
     main()
