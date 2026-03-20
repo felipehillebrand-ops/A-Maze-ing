@@ -134,7 +134,7 @@ def main() -> None:
     else:
         print("No path found.")
 
-    visualizer = MazeVisualizer(maze)
+    visualizer = MazeVisualizer(maze, path)
     visualizer.run()
 
 
