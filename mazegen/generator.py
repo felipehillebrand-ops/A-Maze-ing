@@ -41,8 +41,7 @@ class MazeGenerator:
 
         reserved: List[Tuple[int, int]] = []
         if self.width < p_width + 2 or self.height < p_height + 2:
-            print("Error: Maze too small to draw the '42' pattern.")
-            return reserved
+            raise ValueError("Maze too small to draw the '42' pattern.")
 
         start_x = (self.width - p_width) // 2
         start_y = (self.height - p_height) // 2
