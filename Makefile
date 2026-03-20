@@ -34,12 +34,16 @@ clean:
 	rm -rf mlx/__pycache__
 
 lint: $(VENV)
+	@echo "Running flake8..."
 	$(BIN)/flake8 . --exclude=$(VENV),mlx
-	$(BIN)/mypy . --exclude $(VENV) --exclude mlx --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	@echo "Running mypy..."
+	$(BIN)/mypy . --exclude $(VENV) --exclude "mlx" --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict: $(VENV)
+	@echo "Running flake8..."
 	$(BIN)/flake8 . --exclude=$(VENV),mlx
-	$(BIN)/mypy . --strict --exclude $(VENV) --exclude mlx
+	@echo "Running mypy..."
+	$(BIN)/mypy . --strict --exclude $(VENV) --exclude "mlx"
 
 re: clean all
 
