@@ -1,3 +1,4 @@
+import sys
 import random
 from collections import deque
 from typing import List, Tuple, Any, Dict, Optional
@@ -41,7 +42,9 @@ class MazeGenerator:
 
         reserved: List[Tuple[int, int]] = []
         if self.width < p_width + 2 or self.height < p_height + 2:
-            raise ValueError("Maze too small to draw the '42' pattern.")
+            sys.stderr.write("Error: Maze size does not allow the "
+                             "'42' pattern. Omitting it.\n")
+            return []
 
         start_x = (self.width - p_width) // 2
         start_y = (self.height - p_height) // 2
@@ -58,6 +61,14 @@ class MazeGenerator:
         """
         for x, y in self.res_cells:
             self.maze[y][x] = 15
+
+    def is_reserved(self, x: int, y: int) -> bool:
+        """
+        Checks if a given coordinate is part of the reserved '42' pattern.
+        """
+        if not self.res_cells:
+            self.res_cells = self._get_reserved_42_coords()
+        return (x, y) in self.res_cells
 
     def _get_neighbors(self, x: int, y: int,
                        visited: set) -> List[Tuple[int, int, int, int]]:
