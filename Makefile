@@ -33,9 +33,13 @@ clean:
 	rm -rf mlx/__pycache__
 
 lint: $(VENV)
-	$(BIN)/flake8 . --exclude=$(VENV)
-	$(BIN)/mypy . --exclude $(VENV) --ignore-missing-imports
+	$(BIN)/flake8 a_maze_ing.py display.py mazegen --exclude=$(VENV),.venv,mlx
+	$(BIN)/mypy a_maze_ing.py display.py mazegen --exclude '(^venv/|^\.venv/|^mlx/)' --follow-imports=skip --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+
+lint-strict: $(VENV)
+	$(BIN)/flake8 a_maze_ing.py display.py mazegen --exclude=$(VENV),.venv,mlx
+	$(BIN)/mypy a_maze_ing.py display.py mazegen --exclude '(^venv/|^\.venv/|^mlx/)' --follow-imports=skip --strict
 
 re: clean all
 
-.PHONY: all install run debug clean lint re
+.PHONY: all install run debug clean lint lint-strict re
