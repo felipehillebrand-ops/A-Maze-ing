@@ -94,6 +94,10 @@ class MazeGenerator:
         """
         Generates the maze using the Recursive Backtracking algorithm.
         """
+        self.maze = [
+            [15 for _ in range(self.width)]
+            for _ in range(self.height)
+        ]
         self.res_cells = self._get_reserved_42_coords()
         self._sculpt_42()
 

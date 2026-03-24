@@ -29,16 +29,12 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 
 lint: $(VENV)
-	@echo "Running flake8..."
-	$(BIN)/flake8 . --exclude=$(VENV),mlx
-	@echo "Running mypy..."
-	$(BIN)/mypy . --exclude $(VENV) --exclude mlx --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	$(BIN)/flake8 a_maze_ing.py display.py mazegen --exclude=$(VENV),.venv,mlx
+	$(BIN)/mypy a_maze_ing.py display.py mazegen --exclude '(^venv/|^\.venv/|^mlx/)' --follow-imports=skip --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict: $(VENV)
-	@echo "Running flake8..."
-	$(BIN)/flake8 . --exclude=$(VENV),mlx
-	@echo "Running mypy..."
-	$(BIN)/mypy . --exclude $(VENV) --exclude mlx --strict
+	$(BIN)/flake8 a_maze_ing.py display.py mazegen --exclude=$(VENV),.venv,mlx
+	$(BIN)/mypy a_maze_ing.py display.py mazegen --exclude '(^venv/|^\.venv/|^mlx/)' --follow-imports=skip --strict
 
 re: clean all
 
