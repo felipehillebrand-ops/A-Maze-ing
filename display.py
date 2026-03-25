@@ -1,5 +1,6 @@
 import time
 import random
+import math
 from typing import Any, Dict, List, Optional, Tuple
 
 from mlx import mlx
@@ -10,6 +11,9 @@ OFFSET = 24
 HUD_HEIGHT = 38
 PATH_STEP_INTERVAL = 0.035
 PATH_TARGET_STEPS = 200
+PATTERN_STEP_INTERVAL = 0.03
+PATTERN_CYCLE_SPEED = 1.8
+PATTERN_COLOR_SWING = 70
 
 
 class MazeVisualizer:
@@ -27,6 +31,7 @@ class MazeVisualizer:
         self.path_visible_segments = 0
         self.path_animating = False
         self.last_path_step_at = 0.0
+        self.last_pattern_step_at = 0.0
 
         self.cell_w = 1
         self.cell_h = 1
@@ -58,6 +63,60 @@ class MazeVisualizer:
 
         self._calc_geometry()
 
+    def run(self) -> None:
+        self._update_solution()
+        self.needs_render = True
+        self.m.mlx_loop(self.mlx_ptr)
+
+    def handle_keys(self, keycode: int, param: Any) -> None:
+        if keycode in [53, 65307]:
+            self.close()
+        elif keycode in [49, 18]:
+            self.maze.generate()
+            self._update_solution()
+            self.needs_render = True
+        elif keycode in [50, 19]:
+            self.show_solution = not self.show_solution
+            if self.show_solution:
+                self._restart_path_animation()
+            else:
+                self.path_animating = False
+            self.needs_render = True
+        elif keycode in [51, 20]:
+            self.palette = self._generate_random_palette()
+            self.needs_render = True
+
+    def handle_close(self, param: Any) -> None:
+        self.close()
+
+    def close(self) -> None:
+        self.m.mlx_loop_exit(self.mlx_ptr)
+
+    def _loop_handler(self, param: Any) -> None:
+        now = time.monotonic()
+
+        if self.pattern_cells:
+            if (now - self.last_pattern_step_at) >= PATTERN_STEP_INTERVAL:
+                self.last_pattern_step_at = now
+                self.needs_render = True
+
+        if self.path_animating and self.show_solution:
+            if (now - self.last_path_step_at) >= PATH_STEP_INTERVAL:
+                max_segments = self._max_path_segments()
+                step = self._path_step_size()
+                self.path_visible_segments = min(
+                    max_segments,
+                    self.path_visible_segments + step,
+                )
+                self.last_path_step_at = now
+                self.needs_render = True
+                if self.path_visible_segments >= max_segments:
+                    self.path_animating = False
+
+        if self.needs_render:
+            self.render()
+            self.needs_render = False
+
     def _update_solution(self) -> None:
         self.solution_path = self.maze.solve()
         self.pattern_cells = set(getattr(self.maze, "res_cells", []))
@@ -86,9 +145,59 @@ class MazeVisualizer:
     def _palette(self) -> Dict[str, int]:
         return self.palette
 
+    def render(self) -> None:
+        palette = self._palette()
+        animated_pattern = self._animated_pattern_color(
+            palette["pattern"],
+            time.monotonic(),
+        )
+
+        self._clear_background(palette["bg"])
+        self._draw_all_walls(palette["wall"], animated_pattern)
+        self._draw_endpoints(palette["entry"], palette["exit"])
+
+        if self.show_solution:
+            self._draw_solution_path(
+                palette["path"],
+                self.path_visible_segments,
+            )
+
+        self.m.mlx_put_image_to_window(
+            self.mlx_ptr,
+            self.win_ptr,
+            self.img_ptr,
+            0,
+            0,
+        )
+        self._draw_ui(palette["ui"])
+
     def _rgb_to_int(self, rgb: Tuple[int, int, int]) -> int:
         red, green, blue = rgb
         return (red << 16) | (green << 8) | blue
+
+    def _int_to_rgb(self, color: int) -> Tuple[int, int, int]:
+        return (
+            (color >> 16) & 0xFF,
+            (color >> 8) & 0xFF,
+            color & 0xFF,
+        )
+
+    def _clamp_channel(self, value: float) -> int:
+        return max(0, min(255, int(value)))
+
+    def _animated_pattern_color(self, base_color: int, now: float) -> int:
+        base_red, base_green, base_blue = self._int_to_rgb(base_color)
+        phase = now * PATTERN_CYCLE_SPEED
+        red = base_red + (math.sin(phase) * PATTERN_COLOR_SWING)
+        green = base_green + (math.sin(phase + 2.094) * PATTERN_COLOR_SWING)
+        blue = base_blue + (math.sin(phase + 4.188) * PATTERN_COLOR_SWING)
+        return self._rgb_to_int(
+            (
+                self._clamp_channel(red),
+                self._clamp_channel(green),
+                self._clamp_channel(blue),
+            ),
+        )
 
     def _brightness(self, rgb: Tuple[int, int, int]) -> float:
         red, green, blue = rgb
@@ -340,73 +449,3 @@ class MazeVisualizer:
             color,
             text,
         )
-
-    def render(self) -> None:
-        palette = self._palette()
-
-        self._clear_background(palette["bg"])
-        self._draw_all_walls(palette["wall"], palette["pattern"])
-        self._draw_endpoints(palette["entry"], palette["exit"])
-
-        if self.show_solution:
-            self._draw_solution_path(
-                palette["path"],
-                self.path_visible_segments,
-            )
-
-        self.m.mlx_put_image_to_window(
-            self.mlx_ptr,
-            self.win_ptr,
-            self.img_ptr,
-            0,
-            0,
-        )
-        self._draw_ui(palette["ui"])
-
-    def _loop_handler(self, param: Any) -> None:
-        if self.path_animating and self.show_solution:
-            now = time.monotonic()
-            if (now - self.last_path_step_at) >= PATH_STEP_INTERVAL:
-                max_segments = self._max_path_segments()
-                step = self._path_step_size()
-                self.path_visible_segments = min(
-                    max_segments,
-                    self.path_visible_segments + step,
-                )
-                self.last_path_step_at = now
-                self.needs_render = True
-                if self.path_visible_segments >= max_segments:
-                    self.path_animating = False
-
-        if self.needs_render:
-            self.render()
-            self.needs_render = False
-
-    def handle_keys(self, keycode: int, param: Any) -> None:
-        if keycode in [53, 65307]:
-            self.close()
-        elif keycode in [49, 18]:
-            self.maze.generate()
-            self._update_solution()
-            self.needs_render = True
-        elif keycode in [50, 19]:
-            self.show_solution = not self.show_solution
-            if self.show_solution:
-                self._restart_path_animation()
-            else:
-                self.path_animating = False
-            self.needs_render = True
-        elif keycode in [51, 20]:
-            self.palette = self._generate_random_palette()
-            self.needs_render = True
-
-    def handle_close(self, param: Any) -> None:
-        self.close()
-
-    def close(self) -> None:
-        self.m.mlx_loop_exit(self.mlx_ptr)
-
-    def run(self) -> None:
-        self._update_solution()
-        self.needs_render = True
-        self.m.mlx_loop(self.mlx_ptr)
