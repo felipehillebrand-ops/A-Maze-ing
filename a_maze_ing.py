@@ -152,7 +152,7 @@ def main() -> None:
 
         visualizer = MazeVisualizer(maze, config, save_maze_to_file)
         visualizer.run()
-
+      
     except Exception as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
