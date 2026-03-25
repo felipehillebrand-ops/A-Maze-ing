@@ -1,7 +1,6 @@
 import sys
 from typing import Dict, Tuple, List, Union
 from mazegen.generator import MazeGenerator
-from display import MazeVisualizer
 
 
 ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
@@ -38,6 +37,11 @@ def parse_config(filename: str) -> ConfigDict:
         try:
             if key in ["WIDTH", "HEIGHT"]:
                 value = int(value_str)
+                if value < 0:
+                    raise ValueError(f"{key} cannot be negative")
+                elif value < 3:
+                    raise ValueError(f"{key} must be at least 3 to "
+                                     f"generate a valid maze.")
             elif key in ["ENTRY", "EXIT"]:
                 x, y = value_str.split(",")
                 value = (int(x), int(y))
@@ -59,8 +63,10 @@ def parse_config(filename: str) -> ConfigDict:
             config[key] = value
 
         except (ValueError, IndexError, TypeError) as e:
-            if isinstance(e, ValueError) and ("Duplicate" in str(e)
-                                              or "PERFECT" in str(e)):
+            is_val_err = isinstance(e, ValueError)
+            custom_msgs = ["cannot be negative", "at least 3",
+                           "Duplicate", "PERFECT"]
+            if is_val_err and any(msg in str(e) for msg in custom_msgs):
                 raise e
             raise ValueError(f"Invalid value for '{key}':"
                              f"'{value_str}'") from e
@@ -77,8 +83,8 @@ def parse_config(filename: str) -> ConfigDict:
 
     if not isinstance(width, int) or not isinstance(height, int):
         raise ValueError("WIDTH and HEIGHT must be integers")
-    if width <= 0 or height <= 0:
-        raise ValueError("WIDTH and HEIGHT must be greater than zero")
+      if width <= 0 or height <= 0:
+          raise ValueError("WIDTH and HEIGHT must be greater than zero")
 
     if isinstance(entry, tuple) and isinstance(exit_point, tuple):
         if not (0 <= entry[0] < width and 0 <= entry[1] < height):
@@ -98,12 +104,23 @@ def main() -> None:
 
     if len(sys.argv) != 2:
         sys.stderr.write("Error: Invalid number of arguments.\n")
-        sys.stderr.write("Usage: python3 a_maze_ing.py <config_file>")
+        sys.stderr.write("Usage: python3 a_maze_ing.py <config_file>\n")
         sys.exit(1)
 
     try:
         config: ConfigDict = parse_config(sys.argv[1])
         maze = MazeGenerator(config)
+        entry = config["ENTRY"]
+        exit_pt = config["EXIT"]
+
+        if isinstance(entry, tuple) and isinstance(exit_pt, tuple):
+            if maze.is_reserved(entry[0], entry[1]):
+                raise ValueError(f"Entry {entry} collides with the '42 '"
+                                 f"pattern. Please move it.")
+            if maze.is_reserved(exit_pt[0], exit_pt[1]):
+                raise ValueError(f"Exit {exit_pt} collides with the '42' "
+                                 f"pattern. Please move it.")
+
         maze.generate()
         maze.display()
 
