@@ -78,6 +78,8 @@ def parse_config(filename: str) -> ConfigDict:
                     raise ValueError("PERFECT must be 'true' or 'false'")
             elif key == "OUTPUT_FILE":
                 value = value_str
+                if value_str != "maze.txt":
+                    raise ValueError("Invalid output file, try 'maze.txt'")
             elif key == "SEED":
                 value = int(value_str)
             else:
@@ -130,7 +132,9 @@ def main() -> None:
         sys.exit(1)
 
     try:
+
         config: ConfigDict = parse_config(sys.argv[1])
+        output_filename = str(config["OUTPUT_FILE"])
         maze = MazeGenerator(config)
         entry = config["ENTRY"]
         exit_pt = config["EXIT"]
@@ -147,12 +151,10 @@ def main() -> None:
         maze.display()
 
         print("\nSolving the maze...")
-        output_filename = str(config["OUTPUT_FILE"])
         save_maze_to_file(maze, output_filename)
-
         visualizer = MazeVisualizer(maze, config, save_maze_to_file)
         visualizer.run()
-      
+
     except Exception as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
