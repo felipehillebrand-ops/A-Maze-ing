@@ -70,8 +70,9 @@ class MazeGenerator:
             self.res_cells = self._get_reserved_42_coords()
         return (x, y) in self.res_cells
 
-    def _get_neighbors(self, x: int, y: int,
-                       visited: set) -> List[Tuple[int, int, int, int]]:
+    def _get_neighbors(
+        self, x: int, y: int, visited: set[Tuple[int, int]]
+    ) -> List[Tuple[int, int, int, int]]:
         """
         Returns a list of valid neighbors that have not been visited yet.
         """

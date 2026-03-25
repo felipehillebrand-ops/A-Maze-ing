@@ -1,8 +1,8 @@
-*This project has been created as part of the 42 curriculum by kde-arru.*
+*This project has been created as part of the 42 curriculum by fjose-hi, kde-arru.*
 
 ## Description
 
-`A-Maze-ing` is a Python maze generator and visualizer.
+`A-Maze-ing` is a Python maze generator and visualizer project.
 It reads a configuration file, builds a valid maze using a wall-bit encoding
 (N/E/S/W), solves the shortest path from entry to exit, writes the output file,
 and displays the maze with MLX.
@@ -10,7 +10,7 @@ and displays the maze with MLX.
 Core features:
 - Config parsing with validation and clear error messages.
 - Maze generation with reproducibility via `SEED`.
-- Optional `42` pattern reservation when maze dimensions allow it.
+- `42` pattern reservation when maze dimensions allow it.
 - Shortest path solving (BFS).
 - Graphical rendering with controls:
 	- `1`: regenerate
@@ -102,36 +102,6 @@ Why this algorithm:
 - Easy to keep deterministic with seeded randomness.
 - Good fit for wall-bit representation and path-solving workflows.
 
-## Reusable Code (mazegen package)
-
-Reusable component: `mazegen.generator.MazeGenerator`.
-
-Basic usage:
-
-```python
-from mazegen.generator import MazeGenerator
-
-config = {
-		"WIDTH": 20,
-		"HEIGHT": 15,
-		"ENTRY": (0, 0),
-		"EXIT": (19, 14),
-		"PERFECT": True,
-		"SEED": 12345,
-}
-
-maze = MazeGenerator(config)
-maze.generate()
-path = maze.solve()
-
-grid = maze.maze
-directions = maze.get_solution_path(path)
-```
-
-Artifacts at repo root for packaging/reuse:
-- `mazegen-*.whl`
-- `pyproject.toml`
-
 ## Output Format
 
 The output file writes:
@@ -140,34 +110,6 @@ The output file writes:
 3. Entry coordinates (`x,y`).
 4. Exit coordinates (`x,y`).
 5. Shortest path as `N/E/S/W` string.
-
-## Team & Project Management
-
-### Roles
-- Graphics/MLX: rendering and interactions.
-- Generator/Solver: grid carving and BFS pathfinding.
-- Integration: config parsing, output writing, Makefile, packaging.
-
-### Planning
-- Initial phase: parser + generator skeleton.
-- Middle phase: shortest path and output format.
-- Current phase: MLX stability and UX refinements.
-
-### What worked well
-- Clear module boundaries (`a_maze_ing.py`, `mazegen`, `display.py`).
-- Fast iteration using key-based interactions.
-
-### What can improve
-- Add unit tests for parser and wall-consistency checks.
-- Expand README with screenshots and architecture diagram.
-- Add optional second generation algorithm as bonus.
-
-### Tools used
-- Python 3.10+
-- flake8
-- mypy
-- MiniLibX (via Python wrapper)
-- AI assistance for repetitive refactors and review support
 
 ## Resources
 
