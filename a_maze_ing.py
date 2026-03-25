@@ -1,7 +1,7 @@
 import sys
 from typing import Dict, Tuple, List, Union
 from mazegen.generator import MazeGenerator
-
+from display import MazeVisualizer
 
 ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
 
@@ -83,9 +83,8 @@ def parse_config(filename: str) -> ConfigDict:
 
     if not isinstance(width, int) or not isinstance(height, int):
         raise ValueError("WIDTH and HEIGHT must be integers")
-      if width <= 0 or height <= 0:
-          raise ValueError("WIDTH and HEIGHT must be greater than zero")
-
+    if width <= 0 or height <= 0:
+        raise ValueError("WIDTH and HEIGHT must be greater than zero")
     if isinstance(entry, tuple) and isinstance(exit_point, tuple):
         if not (0 <= entry[0] < width and 0 <= entry[1] < height):
             raise ValueError("Entry coordinates are out of maze bounds")
