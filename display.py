@@ -1,7 +1,7 @@
 import time
 import random
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Callable
 
 from mlx import mlx
 
@@ -20,10 +20,20 @@ class MazeVisualizer:
     def __init__(
         self,
         maze_instance: Any,
-        solution_path: Optional[List[Tuple[int, int]]] = None,
+        config_or_path: Any,
+        save_callback: Optional[Callable[[Any, str], None]] = None,
     ) -> None:
         self.maze = maze_instance
-        self.solution_path: List[Tuple[int, int]] = solution_path or []
+        self.save_callback = save_callback
+        self.output_filename = ""
+
+        if isinstance(config_or_path, dict):
+            output = config_or_path.get("OUTPUT_FILE", "maze.txt")
+            self.output_filename = str(output)
+            self.solution_path: List[Tuple[int, int]] = self.maze.solve()
+        else:
+            self.solution_path = config_or_path or []
+
         self.pattern_cells = set(getattr(self.maze, "res_cells", []))
         self.show_solution = True
         self.palette = self._generate_random_palette()
@@ -73,7 +83,10 @@ class MazeVisualizer:
             self.close()
         elif keycode in [49, 18]:
             self.maze.generate()
+            self.maze.display()
             self._update_solution()
+            if self.save_callback and self.output_filename:
+                self.save_callback(self.maze, self.output_filename)
             self.needs_render = True
         elif keycode in [50, 19]:
             self.show_solution = not self.show_solution

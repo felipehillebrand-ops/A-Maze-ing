@@ -6,6 +6,29 @@ from display import MazeVisualizer
 ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
 
 
+def save_maze_to_file(maze: 'MazeGenerator', output_filename: str) -> None:
+    """
+    Saves the maze and its solution to a file in hexadecimal format.
+    """
+    path = maze.solve()
+    with open(output_filename, "w") as f:
+        for row in maze.maze:
+            hex_row = "".join(f"{cell:X}" for cell in row)
+            f.write(hex_row + "\n")
+
+        f.write("\n")
+        f.write(f"{maze.entry[0]},{maze.entry[1]}\n")
+        f.write(f"{maze.exit[0]},{maze.exit[1]}\n")
+
+        trajectory = maze.get_solution_path(path)
+        f.write(trajectory + "\n")
+    print(f"\nMaze and path saved to {output_filename}")
+    if path:
+        print(f"Path found! It takes {len(path)} steps.")
+    else:
+        print("No path found.")
+
+
 def parse_config(filename: str) -> ConfigDict:
     """
     Parses the configuration file and returns a dictionary of settings.
@@ -124,30 +147,10 @@ def main() -> None:
         maze.display()
 
         print("\nSolving the maze...")
-        path = maze.solve()
-
         output_filename = str(config["OUTPUT_FILE"])
+        save_maze_to_file(maze, output_filename)
 
-        with open(output_filename, "w") as f:
-            for row in maze.maze:
-                hex_row = "".join(f"{cell:X}" for cell in row)
-                f.write(hex_row + "\n")
-
-            f.write("\n")
-            f.write(f"{maze.entry[0]},{maze.entry[1]}\n")
-            f.write(f"{maze.exit[0]},{maze.exit[1]}\n")
-
-            trajectory = maze.get_solution_path(path)
-            f.write(trajectory + "\n")
-
-        print(f"\nSuccess! Maze and path saved to {output_filename}")
-
-        if path:
-            print(f"Path found! It takes {len(path)} steps.")
-        else:
-            print("No path found.")
-
-        visualizer = MazeVisualizer(maze, path)
+        visualizer = MazeVisualizer(maze, config, save_maze_to_file)
         visualizer.run()
 
     except Exception as e:
