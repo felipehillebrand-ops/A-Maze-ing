@@ -3,5 +3,10 @@ HEIGHT=40
 ENTRY=0,0
 EXIT=39,39
 OUTPUT_FILE=maze.txt
+<<<<<<< HEAD
 PERFECT=False
 SEED=42
+=======
+PERFECT=false
+# SEED=12345
+>>>>>>> 6a218160bd8a44dae2d526e7702bc73bce96a643
