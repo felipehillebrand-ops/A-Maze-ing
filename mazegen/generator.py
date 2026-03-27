@@ -66,6 +66,8 @@ class MazeGenerator:
         """
         Checks if a given coordinate is part of the reserved '42' pattern.
         """
+        if not self.res_cells:
+            self.res_cells = self._get_reserved_42_coords()
         return (x, y) in self.res_cells
 
     def _get_neighbors(
