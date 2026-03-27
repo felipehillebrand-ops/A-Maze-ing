@@ -42,7 +42,7 @@ class MazeGenerator:
 
         reserved: List[Tuple[int, int]] = []
         if self.width < p_width + 2 or self.height < p_height + 2:
-            sys.stderr.write("Error: Maze size does not allow the "
+            sys.stderr.write("\nError: Maze size does not allow the "
                              "'42' pattern. Omitting it.\n")
             return []
 
@@ -66,8 +66,6 @@ class MazeGenerator:
         """
         Checks if a given coordinate is part of the reserved '42' pattern.
         """
-        if not self.res_cells:
-            self.res_cells = self._get_reserved_42_coords()
         return (x, y) in self.res_cells
 
     def _get_neighbors(
