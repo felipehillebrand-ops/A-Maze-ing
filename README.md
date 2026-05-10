@@ -120,3 +120,17 @@ The output file writes:
 AI usage note:
 - Used for code review, lint/type cleanup, and iterative rendering fixes.
 - All generated suggestions were manually reviewed and tested before adoption.
+
+## License
+
+This project was developed for educational purposes as part of the 42 curriculum.
+
+## Author
+
+Felipe José Hillebrand
+
+GitHub: https://github.com/felipehillebrand-ops
+
+Kleyton Filho
+
+https://github.com/Kde-arru
